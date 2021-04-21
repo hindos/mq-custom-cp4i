@@ -1,36 +1,36 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: mq-qlhlt-
+  generateName: mq-hello-world
   namespace: dev-ops
 spec:
   params:
   - name: environment
     value: build-only
   - name: git-url
-    value: 'https://us-east.git.cloud.ibm.com/loblaws/mq-hlt-custom-cp4i.git'
+    value: 'https://us-east.git.cloud.ibm.com/loblaws/mq-custom-cp4i.git'
   - name: app-namespace
-    value: pt-hlt
+    value: henda
   - name: app-name
-    value: qlhltr01
+    value: mq-custom-cp4i
   - name: private-lan-id
     value: ""
   - name: private-ip
     value: ""
   - name: deployment-type
-    value: miqm
+    value: siqm
   - name: siqm-primary
     value: "1"
   - name: siqm-secondary
     value: "2"
   - name: storage-class
-    value: ibmc-file-custom-gid
+    value: ibmc-block-gold
   - name: storage-size
     value: 20Gi
   - name: config-map
-    value: qlhltr01
+    value: ""
   - name: qmgr-name
-    value: QLHLTR01
+    value: QM1
   - name: master-image
     value: "true"    
   pipelineRef:
