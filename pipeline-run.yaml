@@ -8,7 +8,7 @@ spec:
   - name: environment
     value: build-only
   - name: git-url
-    value: 'https://us-east.git.cloud.ibm.com/loblaws/mq-custom-cp4i.git'
+    value: 'https://github.com/hindos/mq-custom-cp4i.git'
   - name: app-namespace
     value: henda
   - name: app-name
