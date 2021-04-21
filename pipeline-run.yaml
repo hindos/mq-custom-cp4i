@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: mq-hello-world
-  namespace: dev-ops
+  namespace: henda
 spec:
   params:
   - name: environment
