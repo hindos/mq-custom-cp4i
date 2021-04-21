@@ -1,0 +1,208 @@
+* define and start listener
+
+* def listener(tcp.1414) +
+* trptype(tcp) +
+* port(1414) +
+* control(qmgr)
+* start listener(tcp.1414)
+
+* set qmgr SDLQ
+alter qmgr deadq(system.dead.letter.queue) monq(medium) maxmsgl(104857600)
+
+alter chl(system.def.clussdr) chltype(clussdr) maxmsgl(104857600)
+alter chl(system.def.clusrcvr) chltype(clusrcvr) maxmsgl(104857600)
+alter chl(system.def.svrconn) chltype(svrconn) maxmsgl(104857600)
+alter chl(system.def.clntconn) chltype(clntconn) maxmsgl(104857600)
+
+alter ql(system.default.local.queue) maxdepth(999999999) maxmsgl(104857600) monq(qmgr)
+
+* define objects for DLQ Handling
+define ql(system.dead.letter.queue) +
+	trigger +
+	trigtype(first) +
+	initq(qi.dlq.handler) +
+	process(pr.dlq.handler) +
+	maxdepth(999999999) +
+	replace
+	
+define ql(qi.dlq.handler) +
+	maxdepth(999999999) +
+	replace
+	
+define process(pr.dlq.handler) +
+	applicid('nohup /home/mqm/dlqHandler/scripts/processDLQ.sh') +
+	userdata('/home/mqm/dlqHandler/rulesTable/dlqHandlerRulesTable.txt') +
+	envrdata('&') +
+	replace
+	
+define ql(LCL.DLQ.MQRC_Q_FULL) +
+	maxdepth(999999999) +
+	replace
+	   
+define ql(LCL.DLQ.MQRC_UNKNOWN_OBJECT_NAME) +
+	maxdepth(999999999) +
+	replace
+	   
+define ql(LCL.DLQ.MQRC_NOT_AUTHORIZED) +
+	maxdepth(999999999) +
+	replace
+
+define ql(LCL.DLQ.MQRC_UNKNOWN_ALIAS_BASE_Q) +
+        maxdepth(999999999) +
+        replace
+
+define ql(LCL.DLQ.MANUAL_INTERVENTION) +
+	maxdepth(999999999) +
+	replace
+
+define service(DLQ.HANDLER.TRIGGER.MONITOR) +
+	CONTROL(QMGR) +
+	SERVTYPE(COMMAND) +
+	STARTCMD('/opt/mqm/bin/runmqtrm') +
+	STARTARG('-m +QMNAME+ -q QI.DLQ.HANDLER') +
+	replace
+
+* note: following queue not required on non broker nodes
+
+define ql(LCL.DLQ.ACE_EXCEPTION) +
+	trigger +
+	trigtype(first) +
+	initq(qi.dlq.handler) +
+	process(pr.dlq.handler.retry.with.wait) +
+	trigdata(300) +
+	maxdepth(999999999) +
+	replace
+
+define process(pr.dlq.handler.retry.with.wait) +
+	applicid('nohup /home/mqm/dlqHandler/scripts/processDLQwithWait.sh') +
+	userdata('/home/mqm/dlqHandler/rulesTable/dlqHandlerRulesTable_RETRY.txt') +
+	envrdata('&') +
+	replace   
+
+define service('SET.ACE.EXCEPTION.QUEUE.TO.TRIGGER') +
+        control(QMGR) +
+        SERVTYPE(COMMAND) +
+        STARTCMD('/home/mqm/dlqHandler/scripts/setDLQtoTrigger.sh') +
+        STARTARG('+QMNAME+ 0') +
+        REPLACE
+
+* secure svrconn channel 
+def chl(cl.ti.aceclient) chltype(svrconn) +
+    trptype(tcp) +
+    mcauser('aceclient') +
+    scyexit(' ') +
+    sslciph(TLS_RSA_WITH_AES_128_GCM_SHA256) +
+    SSLPEER('SERIALNUMBER=5F:29:50:E4,CN=aceclient,OU=cloud,O=ibm,L=com,C=CA') +
+    sharecnv(1) + 
+    replace
+
+
+* non-secure svrconn channel 
+def chl(cl.ni.aceclient) chltype(svrconn) +
+    trptype(tcp) +
+    mcauser('aceclient') +
+    scyexit(' ') +
+    sslciph(' ') +
+    SSLPEER(' ') +
+    sharecnv(1) +
+    replace
+
+* listener for monitor
+def listener(tcp.14141) +
+trptype(tcp) +
+port(14141) +
+control(qmgr) +
+replace
+
+start listener(tcp.14141)
+
+* set keystore - note keystore in /home/mqm/keystore/mqserver.kdb
+alter qmgr sslkeyr('/home/mqm/keystore/mqserver') 
+
+* set qmgr certlabel
+alter qmgr CERTLABL('aceserver')
+
+REFRESH SECURITY(*) TYPE(SSL)
+
+set chlauth(*) type(blockuser) userlist(*MQADMIN) warn(yes) action(replace)
+alter authinfo(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) CHCKCLNT(OPTIONAL) 
+REFRESH SECURITY(*) TYPE(CONNAUTH)
+
+* system topics from SAP 
+
+DEFINE TOPIC('SYSTEM.ADMIN.TOPIC') +
+   TOPICSTR('$SYS/MQ') +
+   DESCR('Root topic for MQ administrative topics') +
+   DURSUB(YES) +
+   PUB(ENABLED) +
+   SUB(ENABLED) +
+   DEFPSIST(NO) +
+   DEFPRTY(0) +
+   DEFPRESP(SYNC) +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.58) +
+   PMSGDLV(ALLDUR) +
+   NPMSGDLV(ALLAVAIL) +
+   PUBSCOPE(QMGR) +
+   SUBSCOPE(QMGR) +
+   WILDCARD(BLOCK) +
+   MDURMDL('SYSTEM.DURABLE.MODEL.QUEUE') +
+   MNDURMDL('SYSTEM.NDURABLE.MODEL.QUEUE') +
+   MCAST(DISABLED) +
+   USEDLQ(YES) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.BASE.TOPIC') +
+   TOPICSTR('') +
+   DESCR('Base topic for resolving attributes') +
+   DURSUB(YES) +
+   PUB(ENABLED) +
+   SUB(ENABLED) +
+   DEFPSIST(NO) +
+   DEFPRTY(0) +
+   DEFPRESP(SYNC) +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.57) +
+   PMSGDLV(ALLDUR) +
+   NPMSGDLV(ALLAVAIL) +
+   PUBSCOPE(ALL) +
+   SUBSCOPE(ALL) +
+   MDURMDL('SYSTEM.DURABLE.MODEL.QUEUE') +
+   MNDURMDL('SYSTEM.NDURABLE.MODEL.QUEUE') +
+   MCAST(DISABLED) +
+   COMMINFO('SYSTEM.DEFAULT.COMMINFO.MULTICAST') +
+   USEDLQ(YES) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.BROKER.ADMIN.STREAM') +
+   TOPICSTR('SYSTEM.BROKER.ADMIN.STREAM') +
+   DESCR('Admin stream for queued Pub/Sub interface') +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.57) +
+   WILDCARD(BLOCK) +
+   MCAST(DISABLED) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.BROKER.DEFAULT.STREAM') +
+   TOPICSTR('') +
+   DESCR('Default stream for queued Pub/Sub interface') +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.56) +
+   WILDCARD(BLOCK) +
+   MCAST(DISABLED) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.BROKER.DEFAULT.SUBPOINT') +
+   TOPICSTR('') +
+   DESCR('Default RFH2 subscription point for queued Pub/Sub interface') +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.57) +
+   WILDCARD(BLOCK) +
+   MCAST(DISABLED) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.BROKER.MB.TOPIC') +
+   TOPICSTR('$SYS/Broker') +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.57) +
+   REPLACE
+DEFINE TOPIC('SYSTEM.DEFAULT.TOPIC') +
+   TOPICSTR('') +
+*  ALTDATE(2017-06-13) +
+*  ALTTIME(01.05.56) +
+   REPLACE
