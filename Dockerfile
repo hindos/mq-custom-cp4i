@@ -10,8 +10,8 @@ RUN useradd aceclient  && \
 #add custom scripts and tables
 #COPY dlqHandler.tar /
 #RUN tar -xvf /dlqHandler.tar && \
-    mv /dlqHandler /home/mqm && \
-    rm /dlqHandler.tar
+#    mv /dlqHandler /home/mqm && \
+#    rm /dlqHandler.tar
 
 #add keystore
 #RUN mkdir /home/mqm/keystore
