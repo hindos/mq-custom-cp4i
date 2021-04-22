@@ -9,15 +9,15 @@ RUN useradd aceclient  && \
 
 #add custom scripts and tables
 #COPY dlqHandler.tar /
-RUN tar -xvf /dlqHandler.tar && \
+#RUN tar -xvf /dlqHandler.tar && \
     mv /dlqHandler /home/mqm && \
     rm /dlqHandler.tar
 
 #add keystore
-RUN mkdir /home/mqm/keystore
+#RUN mkdir /home/mqm/keystore
 #COPY keystore/* /home/mqm/keystore/
 
-RUN chmod -R 777 /home/mqm
+#RUN chmod -R 777 /home/mqm
 
 #COPY etc-mqm/* /etc/mqm/ 
-RUN chmod 777 /etc/mqm/*
+#RUN chmod 777 /etc/mqm/*
