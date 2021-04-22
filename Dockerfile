@@ -1,5 +1,5 @@
-#FROM us.icr.io/lcl-images/ibm-mqadvanced-server-integration:9.2.1.0-r1
-FROM us.icr.io/lcl-images/ibm-mqadvanced-server:9.2.2.0-r1
+FROM hindos/mqadvanced-server:9.2.2.0-r1
+#FROM us.icr.io/lcl-images/ibm-mqadvanced-server:9.2.2.0-r1
 USER root
 
 # Add the aceclient user as a member of the mqm group and set their password
