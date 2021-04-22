@@ -5,7 +5,7 @@ USER root
 # Add the aceclient user as a member of the mqm group and set their password
 #RUN useradd aceclient  && \
 #    echo aceclient:passw0rd | chpasswd && \
-    mkdir /home/mqm
+#    mkdir /home/mqm
 
 #add custom scripts and tables
 #COPY dlqHandler.tar /
