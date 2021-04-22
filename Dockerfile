@@ -3,8 +3,8 @@ FROM hindos/mqadvanced-server:9.2.2.0-r1
 USER root
 
 # Add the aceclient user as a member of the mqm group and set their password
-RUN useradd aceclient  && \
-    echo aceclient:passw0rd | chpasswd && \
+#RUN useradd aceclient  && \
+#    echo aceclient:passw0rd | chpasswd && \
     mkdir /home/mqm
 
 #add custom scripts and tables
