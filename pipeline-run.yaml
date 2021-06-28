@@ -18,9 +18,9 @@ spec:
   - name: deployment-type
     value: siqm
   - name: siqm-primary
-    value: "1"
+    value: ""
   - name: siqm-secondary
-    value: "2"
+    value: ""
   - name: storage-class
     value: ibmc-block-gold
   - name: storage-size
