@@ -32,7 +32,7 @@ spec:
   - name: qmgr-name
     value: QM1
   - name: master-image
-    value: "true"    
+    value: "false"    
   pipelineRef:
     name: mq-pipeline-sample
   serviceAccountName: pipeline
