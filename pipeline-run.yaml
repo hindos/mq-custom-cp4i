@@ -5,8 +5,6 @@ metadata:
   namespace: henda
 spec:
   params:
-  - name: environment
-    value: "dev"
   - name: git-url
     value: 'https://github.com/hindos/mq-custom-cp4i.git'
   - name: app-namespace
@@ -33,6 +31,8 @@ spec:
     value: QM1
   - name: master-image
     value: "false"    
+  - name: environment
+    value: "dev"    
   pipelineRef:
     name: mq-pipeline-sample
   serviceAccountName: pipeline
